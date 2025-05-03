@@ -15,8 +15,6 @@ def main():
 
     communicate_to_server(client)
 
-    
-
 def communicate_to_server(client):
     username = input('Enter username: ')
 

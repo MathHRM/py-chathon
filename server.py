@@ -12,8 +12,8 @@ def main():
     try:
         server.bind((HOST, PORT))
         print(f'Running server in {HOST}:{PORT}')
-    except:
-        print(f'Unable to bind to port {HOST}:{PORT}')
+    except Exception as exception:
+        print(f'Unable to bind to port {HOST}:{PORT}. Error: {exception}')
 
     server.listen(LISTENER_LIMIT)
 
@@ -43,11 +43,23 @@ def listen_for_message(username, client):
         response = client.recv(2048).decode('utf-8')
 
         if response == '':
-            print(f"Receive empty response from user {username}")
             continue
 
-        final_msg = username + '~' + response
+        if response.startswith('/'):
+            process_command(username, client, substring_after(response, '/'))
+            continue
+
+        final_msg = format_message(username, response)
         send_messages_to_all(final_msg)
+
+def process_command(username, client, commandRef):
+    try:
+        match commandRef:
+            case 'whoami': whoami(username, client)
+            
+            case _: command_not_exists(username, client)
+    except:
+        send_message_to_client(client, format_message(username, 'Command does not exist'))
 
 def send_messages_to_all(message):
     for user in active_clients:
@@ -56,6 +68,20 @@ def send_messages_to_all(message):
 def send_message_to_client(client, message):
     client.sendall(message.encode())
 
+def format_message(username, message):
+    return f"{username}~{message}"
+
+def substring_after(s, delim):
+    return s.partition(delim)[2]
+
+
+# commands
+
+def whoami(username, client):
+    send_message_to_client(client, format_message(username, f'You are nothing, but your name is {username}'))
+
+def command_not_exists(username, client):
+    send_message_to_client(client, format_message(username, f'Command does not exist'))
 
 if __name__ == '__main__':
     main()
