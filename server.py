@@ -59,6 +59,7 @@ def process_command(username, client, commandRef):
     try:
         match commandRef:
             case 'whoami': whoami(username, client)
+            case 'users': show_users_in_chat(username, client)
 
             case _: command_not_exists(username, client)
     except:
@@ -82,6 +83,10 @@ def substring_after(s, delim):
 
 def whoami(username, client):
     send_message_to_client(client, format_message(username, f'You are nothing, but your name is {username}'))
+
+def show_users_in_chat(username, client):
+    usersnames = [user[0] for user in active_clients]
+    send_message_to_client(client, format_message(username, f'Users in chat: {usersnames}'))
 
 def command_not_exists(username, client):
     send_message_to_client(client, format_message(username, f'Command does not exist'))
