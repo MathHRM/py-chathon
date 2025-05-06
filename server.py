@@ -32,12 +32,15 @@ def client_handler(client):
         if username == '':
             print("Client name is empty")
             continue
-        
+
         active_clients.append((username, client))
+        print(f"User {username} connected to the server")
+
+        send_messages_to_all(format_message(username, 'Welcome to the server'))
         break
 
     threading.Thread(target=listen_for_message, args=(username, client, )).start()
-            
+
 def listen_for_message(username, client):
     while True:
         response = client.recv(2048).decode('utf-8')
@@ -56,7 +59,7 @@ def process_command(username, client, commandRef):
     try:
         match commandRef:
             case 'whoami': whoami(username, client)
-            
+
             case _: command_not_exists(username, client)
     except:
         send_message_to_client(client, format_message(username, 'Command does not exist'))
