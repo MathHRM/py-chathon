@@ -1,11 +1,14 @@
 import socket
 import threading
 import re
+from enum import Enum
 
 HOST = '127.0.0.1'
 PORT = 1234
 LISTENER_LIMIT = 5
 active_clients = []
+store_messages = []
+server = None
 
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,6 +27,10 @@ def main():
 
         threading.Thread(target=client_handler, args=(client, )).start()
 
+class MessageOriginType(Enum):
+    USER_MESSAGE = 0
+    COMMAND = 1
+
 def client_handler(client):
     username = ''
 
@@ -35,9 +42,9 @@ def client_handler(client):
             continue
 
         active_clients.append((username, client))
-        print(f"User {username} connected to the server")
+        print(f"User {username} joined the chat")
 
-        send_messages_to_all(format_message(username, 'Welcome to the server'))
+        send_message_to_all(username, 'Welcome to the server')
         break
 
     threading.Thread(target=listen_for_message, args=(username, client, )).start()
@@ -53,8 +60,7 @@ def listen_for_message(username, client):
             process_command(username, client, substring_after(response, '/'))
             continue
 
-        final_msg = format_message(username, response)
-        send_messages_to_all(final_msg)
+        send_message_to_all(username, response)
 
 def process_command(username, client, commandRef):
     try:
@@ -64,14 +70,25 @@ def process_command(username, client, commandRef):
 
             case _: command_not_exists(username, client)
     except:
-        send_message_to_client(client, format_message(username, 'Command does not exist'))
+        error_executing_command(client, username)
 
-def send_messages_to_all(message):
+def send_message_to_all(username, message):
     for user in active_clients:
-        send_message_to_client(user[1], message)
+        client = user[1]
+        save_and_send_message(client, username, message)
 
-def send_message_to_client(client, message):
+def save_and_send_message(client, username, message, origin = MessageOriginType.USER_MESSAGE):
+    save_message(username, message, origin)
+
+    message = format_message(username, message)
     client.sendall(message.encode())
+
+def save_message(username, message, origin):
+    store_messages.append({
+        'username': username,
+        'message': message,
+        'origin': origin
+    })
 
 def format_message(username, message):
     return f"{username}~{message}"
@@ -81,17 +98,28 @@ def substring_after(s, delim):
 
 
 
-# commands
+# COMMANDS
 
 def whoami(username, client):
-    send_message_to_client(client, format_message(username, f'You are nothing, but your name is {username}'))
+    save_and_send_message(client, username, f'You are nothing, but your name is {username}', MessageOriginType.COMMAND)
 
 def show_users_in_chat(username, client):
     usersnames = [user[0] for user in active_clients]
-    send_message_to_client(client, format_message(username, f'Users in chat: {usersnames}'))
+    save_and_send_message(client, username, f'Users in chat: {usersnames}', MessageOriginType.COMMAND)
+
+def error_executing_command(client, username):
+    save_and_send_message(client, username, f'Error executing command', MessageOriginType.COMMAND)
 
 def command_not_exists(username, client):
-    send_message_to_client(client, format_message(username, f'Command does not exist'))
+    save_and_send_message(client, username, f'Command does not exist', MessageOriginType.COMMAND)
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        if server:
+            print('Server closed')
+            server.close()
+
+        print(store_messages)
+        exit(0)
