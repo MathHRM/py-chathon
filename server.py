@@ -1,5 +1,6 @@
 import socket
 import threading
+import re
 
 HOST = '127.0.0.1'
 PORT = 1234
@@ -48,7 +49,7 @@ def listen_for_message(username, client):
         if response == '':
             continue
 
-        if response.startswith('/'):
+        if re.match(r"^/.\b", response):
             process_command(username, client, substring_after(response, '/'))
             continue
 
@@ -77,6 +78,7 @@ def format_message(username, message):
 
 def substring_after(s, delim):
     return s.partition(delim)[2]
+
 
 
 # commands

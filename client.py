@@ -21,11 +21,11 @@ def communicate_to_server(client):
     if username == '':
         print('Username can not be empty')
         exit(0)
-    
+
     client.sendall(username.encode())
 
     threading.Thread(target=listen_for_message, args=(client, )).start()
-    
+
     send_message(client)
 
 def listen_for_message(client):
