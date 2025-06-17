@@ -5,6 +5,7 @@ HOST = '127.0.0.1'
 PORT = 1234
 LISTENER_LIMIT = 5
 active_clients = []
+server = None
 
 def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -12,8 +13,8 @@ def main():
     try:
         server.bind((HOST, PORT))
         print(f'Running server in {HOST}:{PORT}')
-    except:
-        print(f'Unable to bind to port {HOST}:{PORT}')
+    except Exception as e:
+        print(f'Unable to bind to port {HOST}:{PORT}, error: {e}')
 
     server.listen(LISTENER_LIMIT)
 
@@ -32,12 +33,12 @@ def client_handler(client):
         if username == '':
             print("Client name is empty")
             continue
-        
+
         active_clients.append((username, client))
         break
 
     threading.Thread(target=listen_for_message, args=(username, client, )).start()
-            
+
 def listen_for_message(username, client):
     while True:
         response = client.recv(2048).decode('utf-8')
@@ -58,4 +59,10 @@ def send_message_to_client(client, message):
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Keyboard interrupt')
+        if server:
+            server.close()
+        exit(0)

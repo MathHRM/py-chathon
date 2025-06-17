@@ -3,6 +3,7 @@ import threading
 
 HOST = '127.0.0.1'
 PORT = 1234
+client = None
 
 def main():
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,7 +16,6 @@ def main():
 
     communicate_to_server(client)
 
-    
 
 def communicate_to_server(client):
     username = input('Enter username: ')
@@ -23,11 +23,11 @@ def communicate_to_server(client):
     if username == '':
         print('Username can not be empty')
         exit(0)
-    
+
     client.sendall(username.encode())
 
     threading.Thread(target=listen_for_message, args=(client, )).start()
-    
+
     send_message(client)
 
 def listen_for_message(client):
@@ -53,4 +53,10 @@ def send_message(client):
         client.sendall(message.encode())
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Keyboard interrupt')
+        if client:
+            client.close()
+        exit(0)
