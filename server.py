@@ -2,7 +2,7 @@ import socket
 import threading
 
 HOST = '127.0.0.1'
-PORT = 1234
+PORT = 6969
 LISTENER_LIMIT = 5
 active_clients = []
 server = None
@@ -63,6 +63,10 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print('Keyboard interrupt')
-        if server:
-            server.close()
-        exit(0)
+    except Exception as e:
+        print(f'Unexpected error: {e.message}')
+
+    if server:
+        print('Closing server')
+        server.close()
+    exit(0)

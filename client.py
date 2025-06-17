@@ -2,7 +2,7 @@ import socket
 import threading
 
 HOST = '127.0.0.1'
-PORT = 1234
+PORT = 6969
 client = None
 
 def main():
@@ -11,8 +11,10 @@ def main():
     try:
         client.connect((HOST, PORT))
         print(f"Connected to server in {HOST}:{PORT}")
-    except:
-        print(f"Unable to connect to server in {HOST}:{PORT}")
+    except Exception as e:
+        print(f"Unable to connect to server in {HOST}:{PORT}, error: {e}")
+        print(f"Exiting...")
+        exit(0)
 
     communicate_to_server(client)
 
@@ -22,6 +24,7 @@ def communicate_to_server(client):
 
     if username == '':
         print('Username can not be empty')
+        print(f"Exiting...")
         exit(0)
 
     client.sendall(username.encode())
@@ -57,6 +60,10 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print('Keyboard interrupt')
-        if client:
-            client.close()
-        exit(0)
+    except Exception as e:
+        print(f'Unexpected error: {e}')
+
+    if client:
+        print('Closing client')
+        client.close()
+    exit(0)
