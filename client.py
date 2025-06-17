@@ -55,15 +55,20 @@ def send_message(client):
 
         client.sendall(message.encode())
 
-if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        print('Keyboard interrupt')
-    except Exception as e:
-        print(f'Unexpected error: {e}')
+def exit_and_close_client():
+    print("Exiting...")
 
     if client:
         print('Closing client')
         client.close()
     exit(0)
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        print('Keyboard interrupt')
+        exit_and_close_client()
+    except Exception as e:
+        print(f'Unexpected error: {e}')
+        exit_and_close_client()

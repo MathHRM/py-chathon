@@ -57,16 +57,21 @@ def send_messages_to_all(message):
 def send_message_to_client(client, message):
     client.sendall(message.encode())
 
+def exit_and_close_server():
+    print("Exiting...")
+
+    if server:
+        print('Closing server')
+        server.close()
+    exit(0)
+
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
         print('Keyboard interrupt')
+        exit_and_close_server()
     except Exception as e:
         print(f'Unexpected error: {e.message}')
-
-    if server:
-        print('Closing server')
-        server.close()
-    exit(0)
+        exit_and_close_server()
